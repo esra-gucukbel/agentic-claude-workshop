@@ -1,0 +1,4 @@
+# Exclude local developer machine overrides from Docker build
+gradle.properties
+build/
+.gradle/

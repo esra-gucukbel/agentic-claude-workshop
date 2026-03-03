@@ -1,0 +1,6 @@
+# Overlay for E2E tests — points the backend at vibeplanner_tests instead of vibeplanner.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --wait
+services:
+  backend:
+    environment:
+      POSTGRES_DB: vibeplanner_tests
