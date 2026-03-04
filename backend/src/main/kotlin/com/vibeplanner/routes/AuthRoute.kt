@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
 import java.util.Date
 
 @Serializable
-data class LoginRequest(val username: String, val password: String)
+data class LoginRequest(val email: String, val password: String)
 
 @Serializable
 data class LoginResponse(val token: String)
@@ -26,8 +26,8 @@ fun Routing.authRoutes() {
         val request = call.receive<LoginRequest>()
 
         val passwordHash = dataSource.connection.use { conn ->
-            conn.prepareStatement("SELECT password_hash FROM users WHERE username = ?").use { stmt ->
-                stmt.setString(1, request.username)
+            conn.prepareStatement("SELECT password_hash FROM users WHERE email = ?").use { stmt ->
+                stmt.setString(1, request.email)
                 stmt.executeQuery().use { rs ->
                     if (rs.next()) rs.getString("password_hash") else null
                 }
@@ -55,7 +55,7 @@ fun Routing.authRoutes() {
         val token = JWT.create()
             .withAudience(audience)
             .withIssuer(issuer)
-            .withClaim("username", request.username)
+            .withClaim("email", request.email)
             .withExpiresAt(Date(System.currentTimeMillis() + 86_400_000L))
             .sign(Algorithm.HMAC256(secret))
 

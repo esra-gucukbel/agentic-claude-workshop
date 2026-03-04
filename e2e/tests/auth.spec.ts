@@ -12,7 +12,7 @@ test('login flow with valid credentials succeeds', async ({ page }) => {
 
   await expect(page).toHaveURL('/login')
 
-  await page.getByLabel('Username').fill('test')
+  await page.getByLabel('Email').fill('test@vibeplanner.com')
   await page.getByLabel('Password').fill('V1b3Pl@nn3r!')
   await page.getByRole('button', { name: 'Sign in' }).click()
 
@@ -27,7 +27,7 @@ test('login flow with valid credentials succeeds', async ({ page }) => {
 test('logout clears session and returns to landing page', async ({ page }) => {
   // Log in first
   await page.goto('/login')
-  await page.getByLabel('Username').fill('test')
+  await page.getByLabel('Email').fill('test@vibeplanner.com')
   await page.getByLabel('Password').fill('V1b3Pl@nn3r!')
   await page.getByRole('button', { name: 'Sign in' }).click()
 
@@ -47,10 +47,10 @@ test('logout clears session and returns to landing page', async ({ page }) => {
 test('login flow with wrong credentials shows error', async ({ page }) => {
   await page.goto('/login')
 
-  await page.getByLabel('Username').fill('test')
+  await page.getByLabel('Email').fill('test@vibeplanner.com')
   await page.getByLabel('Password').fill('wrongpassword')
   await page.getByRole('button', { name: 'Sign in' }).click()
 
-  await expect(page.getByText('Invalid username or password.')).toBeVisible()
+  await expect(page.getByText('Invalid email or password.')).toBeVisible()
   await expect(page).toHaveURL('/login')
 })

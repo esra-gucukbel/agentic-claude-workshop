@@ -4,7 +4,7 @@ import { VibeLogo } from '../components/VibeLogo'
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const [username, setUsername] = useState('test')
+  const [email, setEmail] = useState('test@vibeplanner.com')
   const [password, setPassword] = useState('V1b3Pl@nn3r!')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -18,11 +18,11 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       })
 
       if (!res.ok) {
-        setError('Invalid username or password.')
+        setError('Invalid email or password.')
         return
       }
 
@@ -42,13 +42,13 @@ export default function LoginPage() {
         <VibeLogo small />
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="email">Email</label>
             <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="test"
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="test@vibeplanner.com"
               required
               autoFocus
             />

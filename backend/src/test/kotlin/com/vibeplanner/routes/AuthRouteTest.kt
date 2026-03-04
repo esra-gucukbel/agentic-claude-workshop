@@ -14,7 +14,7 @@ class AuthRouteTest : BaseRouteTest() {
     fun `POST auth login with valid credentials returns 200 and token`() = withTestApp {
         val response = client.post("/auth/login") {
             contentType(ContentType.Application.Json)
-            setBody("""{"username":"test","password":"V1b3Pl@nn3r!"}""")
+            setBody("""{"email":"test@vibeplanner.com","password":"V1b3Pl@nn3r!"}""")
         }
         assertEquals(HttpStatusCode.OK, response.status)
         val body = response.bodyAsText()
@@ -26,16 +26,16 @@ class AuthRouteTest : BaseRouteTest() {
     fun `POST auth login with wrong password returns 401`() = withTestApp {
         val response = client.post("/auth/login") {
             contentType(ContentType.Application.Json)
-            setBody("""{"username":"test","password":"wrongpassword"}""")
+            setBody("""{"email":"test@vibeplanner.com","password":"wrongpassword"}""")
         }
         assertEquals(HttpStatusCode.Unauthorized, response.status)
     }
 
     @Test
-    fun `POST auth login with unknown username returns 401`() = withTestApp {
+    fun `POST auth login with unknown email returns 401`() = withTestApp {
         val response = client.post("/auth/login") {
             contentType(ContentType.Application.Json)
-            setBody("""{"username":"nobody","password":"test"}""")
+            setBody("""{"email":"nobody","password":"test"}""")
         }
         assertEquals(HttpStatusCode.Unauthorized, response.status)
     }
