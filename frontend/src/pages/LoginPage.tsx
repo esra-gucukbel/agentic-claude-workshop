@@ -28,7 +28,7 @@ export default function LoginPage() {
 
       const data = await res.json()
       localStorage.setItem('token', data.token)
-      navigate('/')
+      navigate('/tours')
     } catch {
       setError('Could not reach the server. Is the backend running?')
     } finally {

@@ -25,22 +25,24 @@ fun Routing.authRoutes() {
     post("/auth/login") {
         val request = call.receive<LoginRequest>()
 
-        val passwordHash = dataSource.connection.use { conn ->
-            conn.prepareStatement("SELECT password_hash FROM users WHERE email = ?").use { stmt ->
+        data class UserRow(val passwordHash: String, val fullName: String)
+
+        val user = dataSource.connection.use { conn ->
+            conn.prepareStatement("SELECT password_hash, full_name FROM users WHERE email = ?").use { stmt ->
                 stmt.setString(1, request.email)
                 stmt.executeQuery().use { rs ->
-                    if (rs.next()) rs.getString("password_hash") else null
+                    if (rs.next()) UserRow(rs.getString("password_hash"), rs.getString("full_name")) else null
                 }
             }
         }
 
-        if (passwordHash == null) {
+        if (user == null) {
             call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Invalid credentials"))
             return@post
         }
 
         val passwordMatches = BCrypt.verifyer()
-            .verify(request.password.toCharArray(), passwordHash)
+            .verify(request.password.toCharArray(), user.passwordHash)
             .verified
 
         if (!passwordMatches) {
@@ -56,6 +58,7 @@ fun Routing.authRoutes() {
             .withAudience(audience)
             .withIssuer(issuer)
             .withClaim("email", request.email)
+            .withClaim("full_name", user.fullName)
             .withExpiresAt(Date(System.currentTimeMillis() + 86_400_000L))
             .sign(Algorithm.HMAC256(secret))
 
