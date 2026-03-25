@@ -217,8 +217,9 @@ export default function ToursPage() {
             <h2 className="modal__title">{editingTour ? 'Edit Tour' : 'New Tour'}</h2>
 
             <div className="form-group">
-              <label>Tour Number</label>
+              <label htmlFor="tour-number">Tour Number</label>
               <input
+                id="tour-number"
                 type="text"
                 maxLength={4}
                 placeholder="0001"
@@ -229,8 +230,9 @@ export default function ToursPage() {
             </div>
 
             <div className="form-group">
-              <label>Vehicle Type</label>
+              <label htmlFor="vehicle-type">Vehicle Type</label>
               <select
+                id="vehicle-type"
                 value={form.vehicleType}
                 onChange={(e) => setForm({ ...form, vehicleType: e.target.value })}
               >
@@ -243,8 +245,9 @@ export default function ToursPage() {
             </div>
 
             <div className="form-group">
-              <label>Max Volume (m³)</label>
+              <label htmlFor="max-volume">Max Volume (m³)</label>
               <input
+                id="max-volume"
                 type="number"
                 min="0"
                 step="0.01"
@@ -255,8 +258,9 @@ export default function ToursPage() {
             </div>
 
             <div className="form-group">
-              <label>Max Weight (kg)</label>
+              <label htmlFor="max-weight">Max Weight (kg)</label>
               <input
+                id="max-weight"
                 type="number"
                 min="0"
                 step="0.1"
@@ -267,8 +271,9 @@ export default function ToursPage() {
             </div>
 
             <div className="form-group">
-              <label>Range (km)</label>
+              <label htmlFor="range-km">Range (km)</label>
               <input
+                id="range-km"
                 type="number"
                 min="0"
                 placeholder="200"
