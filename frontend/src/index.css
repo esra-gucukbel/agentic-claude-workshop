@@ -5,14 +5,14 @@
 
 :root {
   --primary: #00FFC1;
-  --primary-dark: #2A9D90;
-  --text: #FAFAFA;
-  --text-secondary: #A7ADE0;
-  --bg: #06010E;
-  --bg-subtle: #0E061D;
-  --surface: #1A1227;
-  --surface-elevated: #222436;
-  --border: #3E415B;
+  --primary-dark: #00C49A;
+  --text: #D0FFF8;
+  --text-secondary: #85CEC5;
+  --bg: #07021A;
+  --bg-subtle: #0C0525;
+  --surface: #130A30;
+  --surface-elevated: #1C1044;
+  --border: #3C2A68;
   --radius: 8px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -243,7 +243,7 @@ input:focus {
   justify-content: center;
   padding: 0.75rem 1.5rem;
   background: var(--primary);
-  color: #06010E;
+  color: var(--bg);
   border: none;
   border-radius: var(--radius);
   font-size: 1rem;
@@ -300,7 +300,7 @@ input:focus {
 
 .btn-sm.btn-primary {
   background: var(--primary);
-  color: #06010E;
+  color: var(--bg);
 }
 
 .btn-sm.btn-secondary {
@@ -311,7 +311,7 @@ input:focus {
 
 .btn-active {
   background: var(--primary);
-  color: #06010E;
+  color: var(--bg);
   padding: 0.35rem 0.75rem;
   font-size: 0.8rem;
   border-radius: var(--radius);
@@ -355,7 +355,7 @@ input:focus {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(6, 1, 14, 0.75);
+  background: rgba(7, 2, 26, 0.82);
   display: flex;
   align-items: center;
   justify-content: center;
