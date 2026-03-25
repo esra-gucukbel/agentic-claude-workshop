@@ -1,0 +1,111 @@
+package com.vibeplanner.routes
+
+import com.vibeplanner.BaseRouteTest
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import kotlinx.serialization.json.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+
+class TourRouteTest : BaseRouteTest() {
+
+    private suspend fun io.ktor.server.testing.ApplicationTestBuilder.loginAndGetToken(): String {
+        val response = client.post("/auth/login") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"email":"test@vibeplanner.com","password":"V1b3Pl@nn3r!"}""")
+        }
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+        return body["token"]!!.jsonPrimitive.content
+    }
+
+    @Test
+    fun `GET tours without auth returns 401`() = withTestApp {
+        val response = client.get("/tours")
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun `GET tours with auth returns 200 and list`() = withTestApp {
+        val token = loginAndGetToken()
+        val response = client.get("/tours") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        val body = response.bodyAsText()
+        assertTrue(body.startsWith("["), "Response should be a JSON array")
+    }
+
+    @Test
+    fun `POST tours creates a tour and returns 201`() = withTestApp {
+        val token = loginAndGetToken()
+        val response = client.post("/tours") {
+            contentType(ContentType.Application.Json)
+            header(HttpHeaders.Authorization, "Bearer $token")
+            setBody("""{"tourNumber":"0001","vehicleType":"SPRINTER_3_5T","maxVolume":14.0,"maxWeight":3500.0,"rangeKm":200}""")
+        }
+        assertEquals(HttpStatusCode.Created, response.status)
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+        assertEquals("0001", body["tourNumber"]!!.jsonPrimitive.content)
+        assertEquals("SPRINTER_3_5T", body["vehicleType"]!!.jsonPrimitive.content)
+    }
+
+    @Test
+    fun `POST tours with invalid tour number returns 400`() = withTestApp {
+        val token = loginAndGetToken()
+        val response = client.post("/tours") {
+            contentType(ContentType.Application.Json)
+            header(HttpHeaders.Authorization, "Bearer $token")
+            setBody("""{"tourNumber":"AB","vehicleType":"SPRINTER_3_5T","maxVolume":14.0,"maxWeight":3500.0,"rangeKm":200}""")
+        }
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+    }
+
+    @Test
+    fun `POST tours with invalid vehicle type returns 400`() = withTestApp {
+        val token = loginAndGetToken()
+        val response = client.post("/tours") {
+            contentType(ContentType.Application.Json)
+            header(HttpHeaders.Authorization, "Bearer $token")
+            setBody("""{"tourNumber":"0002","vehicleType":"INVALID_TYPE","maxVolume":14.0,"maxWeight":3500.0,"rangeKm":200}""")
+        }
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+    }
+
+    @Test
+    fun `PUT tours updates a tour`() = withTestApp {
+        val token = loginAndGetToken()
+        val created = client.post("/tours") {
+            contentType(ContentType.Application.Json)
+            header(HttpHeaders.Authorization, "Bearer $token")
+            setBody("""{"tourNumber":"0003","vehicleType":"CARGO_BIKE","maxVolume":1.5,"maxWeight":100.0,"rangeKm":50}""")
+        }
+        val id = Json.parseToJsonElement(created.bodyAsText()).jsonObject["id"]!!.jsonPrimitive.int
+
+        val updated = client.put("/tours/$id") {
+            contentType(ContentType.Application.Json)
+            header(HttpHeaders.Authorization, "Bearer $token")
+            setBody("""{"tourNumber":"0003","vehicleType":"BOX_TRUCK_7_5T","maxVolume":30.0,"maxWeight":7500.0,"rangeKm":400}""")
+        }
+        assertEquals(HttpStatusCode.OK, updated.status)
+        val body = Json.parseToJsonElement(updated.bodyAsText()).jsonObject
+        assertEquals("BOX_TRUCK_7_5T", body["vehicleType"]!!.jsonPrimitive.content)
+    }
+
+    @Test
+    fun `DELETE tours removes a tour`() = withTestApp {
+        val token = loginAndGetToken()
+        val created = client.post("/tours") {
+            contentType(ContentType.Application.Json)
+            header(HttpHeaders.Authorization, "Bearer $token")
+            setBody("""{"tourNumber":"0004","vehicleType":"SPRINTER_5_5T","maxVolume":20.0,"maxWeight":5500.0,"rangeKm":300}""")
+        }
+        val id = Json.parseToJsonElement(created.bodyAsText()).jsonObject["id"]!!.jsonPrimitive.int
+
+        val deleted = client.delete("/tours/$id") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }
+        assertEquals(HttpStatusCode.NoContent, deleted.status)
+    }
+}
