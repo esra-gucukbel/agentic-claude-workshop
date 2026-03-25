@@ -1,6 +1,7 @@
 package com.vibeplanner.routes
 
 import com.vibeplanner.plugins.dataSource
+import com.vibeplanner.plugins.withConnection
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -43,7 +44,7 @@ fun Route.tourRoutes() {
         val principal = call.principal<JWTPrincipal>()!!
         val email = principal.payload.getClaim("email").asString()
 
-        val userId = dataSource.connection.use { conn ->
+        val userId = withConnection { conn ->
             conn.prepareStatement("SELECT id FROM users WHERE email = ?").use { stmt ->
                 stmt.setString(1, email)
                 stmt.executeQuery().use { rs -> if (rs.next()) rs.getInt("id") else null }
@@ -55,7 +56,7 @@ fun Route.tourRoutes() {
             return@get
         }
 
-        val tours = dataSource.connection.use { conn ->
+        val tours = withConnection { conn ->
             conn.prepareStatement(
                 "SELECT id, tour_number, vehicle_type, max_volume, max_weight, range_km FROM tours WHERE user_id = ? ORDER BY tour_number"
             ).use { stmt ->
@@ -97,7 +98,7 @@ fun Route.tourRoutes() {
             return@post
         }
 
-        val userId = dataSource.connection.use { conn ->
+        val userId = withConnection { conn ->
             conn.prepareStatement("SELECT id FROM users WHERE email = ?").use { stmt ->
                 stmt.setString(1, email)
                 stmt.executeQuery().use { rs -> if (rs.next()) rs.getInt("id") else null }
@@ -109,7 +110,7 @@ fun Route.tourRoutes() {
             return@post
         }
 
-        val tour = dataSource.connection.use { conn ->
+        val tour = withConnection { conn ->
             conn.prepareStatement(
                 "INSERT INTO tours (user_id, tour_number, vehicle_type, max_volume, max_weight, range_km) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, tour_number, vehicle_type, max_volume, max_weight, range_km"
             ).use { stmt ->
@@ -157,7 +158,7 @@ fun Route.tourRoutes() {
             return@put
         }
 
-        val userId = dataSource.connection.use { conn ->
+        val userId = withConnection { conn ->
             conn.prepareStatement("SELECT id FROM users WHERE email = ?").use { stmt ->
                 stmt.setString(1, email)
                 stmt.executeQuery().use { rs -> if (rs.next()) rs.getInt("id") else null }
@@ -169,7 +170,7 @@ fun Route.tourRoutes() {
             return@put
         }
 
-        val updated = dataSource.connection.use { conn ->
+        val updated = withConnection { conn ->
             conn.prepareStatement(
                 "UPDATE tours SET tour_number = ?, vehicle_type = ?, max_volume = ?, max_weight = ?, range_km = ?, updated_at = NOW() WHERE id = ? AND user_id = ? RETURNING id, tour_number, vehicle_type, max_volume, max_weight, range_km"
             ).use { stmt ->
@@ -207,7 +208,7 @@ fun Route.tourRoutes() {
         val tourId = call.parameters["id"]?.toIntOrNull()
             ?: return@delete call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid tour id"))
 
-        val userId = dataSource.connection.use { conn ->
+        val userId = withConnection { conn ->
             conn.prepareStatement("SELECT id FROM users WHERE email = ?").use { stmt ->
                 stmt.setString(1, email)
                 stmt.executeQuery().use { rs -> if (rs.next()) rs.getInt("id") else null }
@@ -219,7 +220,7 @@ fun Route.tourRoutes() {
             return@delete
         }
 
-        val deleted = dataSource.connection.use { conn ->
+        val deleted = withConnection { conn ->
             conn.prepareStatement("DELETE FROM tours WHERE id = ? AND user_id = ?").use { stmt ->
                 stmt.setInt(1, tourId)
                 stmt.setInt(2, userId)
