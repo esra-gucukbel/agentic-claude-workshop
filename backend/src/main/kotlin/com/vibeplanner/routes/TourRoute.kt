@@ -31,6 +31,25 @@ data class TourRequest(
     val rangeKm: Int
 )
 
+@Serializable
+data class Waypoint(
+    val id: Int,
+    val tourId: Int,
+    val title: String,
+    val description: String,
+    val lat: Double,
+    val lng: Double,
+    val position: Int
+)
+
+@Serializable
+data class WaypointRequest(
+    val title: String = "",
+    val description: String = "",
+    val lat: Double,
+    val lng: Double
+)
+
 val VALID_VEHICLE_TYPES = setOf(
     "CARGO_BIKE",
     "SPRINTER_3_5T",
@@ -234,5 +253,136 @@ fun Route.tourRoutes() {
         }
 
         call.respond(HttpStatusCode.NoContent)
+    }
+
+    get("/tours/{id}/waypoints") {
+        val principal = call.principal<JWTPrincipal>()!!
+        val email = principal.payload.getClaim("email").asString()
+        val tourId = call.parameters["id"]?.toIntOrNull()
+            ?: return@get call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid tour id"))
+
+        val userId = withConnection { conn ->
+            conn.prepareStatement("SELECT id FROM users WHERE email = ?").use { stmt ->
+                stmt.setString(1, email)
+                stmt.executeQuery().use { rs -> if (rs.next()) rs.getInt("id") else null }
+            }
+        }
+
+        if (userId == null) {
+            call.respond(HttpStatusCode.Unauthorized, ErrorResponse("User not found"))
+            return@get
+        }
+
+        val tourExists = withConnection { conn ->
+            conn.prepareStatement("SELECT id FROM tours WHERE id = ? AND user_id = ?").use { stmt ->
+                stmt.setInt(1, tourId)
+                stmt.setInt(2, userId)
+                stmt.executeQuery().use { rs -> rs.next() }
+            }
+        }
+
+        if (!tourExists) {
+            call.respond(HttpStatusCode.NotFound, ErrorResponse("Tour not found"))
+            return@get
+        }
+
+        val waypoints = withConnection { conn ->
+            conn.prepareStatement(
+                "SELECT id, tour_id, title, description, lat, lng, position FROM tour_waypoints WHERE tour_id = ? ORDER BY position"
+            ).use { stmt ->
+                stmt.setInt(1, tourId)
+                stmt.executeQuery().use { rs ->
+                    val list = mutableListOf<Waypoint>()
+                    while (rs.next()) {
+                        list.add(
+                            Waypoint(
+                                id = rs.getInt("id"),
+                                tourId = rs.getInt("tour_id"),
+                                title = rs.getString("title"),
+                                description = rs.getString("description"),
+                                lat = rs.getDouble("lat"),
+                                lng = rs.getDouble("lng"),
+                                position = rs.getInt("position")
+                            )
+                        )
+                    }
+                    list
+                }
+            }
+        }
+
+        call.respond(HttpStatusCode.OK, waypoints)
+    }
+
+    put("/tours/{id}/waypoints") {
+        val principal = call.principal<JWTPrincipal>()!!
+        val email = principal.payload.getClaim("email").asString()
+        val tourId = call.parameters["id"]?.toIntOrNull()
+            ?: return@put call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid tour id"))
+        val requests = call.receive<List<WaypointRequest>>()
+
+        val userId = withConnection { conn ->
+            conn.prepareStatement("SELECT id FROM users WHERE email = ?").use { stmt ->
+                stmt.setString(1, email)
+                stmt.executeQuery().use { rs -> if (rs.next()) rs.getInt("id") else null }
+            }
+        }
+
+        if (userId == null) {
+            call.respond(HttpStatusCode.Unauthorized, ErrorResponse("User not found"))
+            return@put
+        }
+
+        val tourExists = withConnection { conn ->
+            conn.prepareStatement("SELECT id FROM tours WHERE id = ? AND user_id = ?").use { stmt ->
+                stmt.setInt(1, tourId)
+                stmt.setInt(2, userId)
+                stmt.executeQuery().use { rs -> rs.next() }
+            }
+        }
+
+        if (!tourExists) {
+            call.respond(HttpStatusCode.NotFound, ErrorResponse("Tour not found"))
+            return@put
+        }
+
+        val waypoints = withConnection { conn ->
+            conn.prepareStatement("DELETE FROM tour_waypoints WHERE tour_id = ?").use { stmt ->
+                stmt.setInt(1, tourId)
+                stmt.executeUpdate()
+            }
+
+            val list = mutableListOf<Waypoint>()
+            requests.forEachIndexed { idx, req ->
+                conn.prepareStatement(
+                    "INSERT INTO tour_waypoints (tour_id, title, description, lat, lng, position) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, tour_id, title, description, lat, lng, position"
+                ).use { stmt ->
+                    stmt.setInt(1, tourId)
+                    stmt.setString(2, req.title)
+                    stmt.setString(3, req.description)
+                    stmt.setDouble(4, req.lat)
+                    stmt.setDouble(5, req.lng)
+                    stmt.setInt(6, idx)
+                    stmt.executeQuery().use { rs ->
+                        if (rs.next()) {
+                            list.add(
+                                Waypoint(
+                                    id = rs.getInt("id"),
+                                    tourId = rs.getInt("tour_id"),
+                                    title = rs.getString("title"),
+                                    description = rs.getString("description"),
+                                    lat = rs.getDouble("lat"),
+                                    lng = rs.getDouble("lng"),
+                                    position = rs.getInt("position")
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+            list
+        }
+
+        call.respond(HttpStatusCode.OK, waypoints)
     }
 }

@@ -20,6 +20,16 @@ CREATE TABLE IF NOT EXISTS tours (
     updated_at   TIMESTAMP DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS tour_waypoints (
+    id          SERIAL PRIMARY KEY,
+    tour_id     INTEGER NOT NULL REFERENCES tours(id) ON DELETE CASCADE,
+    title       VARCHAR(255) NOT NULL DEFAULT '',
+    description TEXT NOT NULL DEFAULT '',
+    lat         DOUBLE PRECISION NOT NULL,
+    lng         DOUBLE PRECISION NOT NULL,
+    position    INTEGER NOT NULL DEFAULT 0
+);
+
 -- test / test
 INSERT INTO users (email, full_name, password_hash)
 VALUES ('test@vibeplanner.com', 'Test User', '$2b$10$oy5CxC3gII/QB0H8x36CGOXpRwYLjLDq.4vI9nzp6hCVNITjmcAH.')

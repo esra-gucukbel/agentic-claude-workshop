@@ -30,7 +30,7 @@ abstract class BaseRouteTest {
                 username = postgres.username
                 password = postgres.password
                 maximumPoolSize = 5
-                isAutoCommit = true
+                isAutoCommit = false
             }
             dataSource = HikariDataSource(config)
         }

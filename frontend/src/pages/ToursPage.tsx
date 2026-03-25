@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import TourMapModal from '../components/TourMapModal'
 
 interface Tour {
   id: number
@@ -40,6 +41,7 @@ export default function ToursPage() {
   const [formError, setFormError] = useState('')
   const [saving, setSaving] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<Tour | null>(null)
+  const [mapTour, setMapTour] = useState<Tour | null>(null)
 
   useEffect(() => {
     if (!token) {
@@ -189,6 +191,13 @@ export default function ToursPage() {
                     <td className="tours-table__actions">
                       <button
                         className="btn-icon"
+                        title="Map"
+                        onClick={() => setMapTour(tour)}
+                      >
+                        ⌖
+                      </button>
+                      <button
+                        className="btn-icon"
                         title="Edit"
                         onClick={() => openEdit(tour)}
                       >
@@ -294,6 +303,15 @@ export default function ToursPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Map modal */}
+      {mapTour && token && (
+        <TourMapModal
+          tour={mapTour}
+          token={token}
+          onClose={() => setMapTour(null)}
+        />
       )}
 
       {/* Delete confirm modal */}
