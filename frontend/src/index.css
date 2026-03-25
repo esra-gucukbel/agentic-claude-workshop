@@ -548,6 +548,11 @@ input[type='number']:focus {
   border-top: 1px solid var(--border);
 }
 
+.leaflet-container {
+  background: var(--bg-subtle);
+  height: 100%;
+}
+
 /* ── Misc ── */
 .hint-text {
   font-size: 0.75rem;
